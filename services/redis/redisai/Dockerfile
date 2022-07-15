@@ -1,0 +1,1 @@
+FROM redislabs/redisai:latest

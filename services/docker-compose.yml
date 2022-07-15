@@ -1,0 +1,191 @@
+version: "3.8"
+services:
+  sitedata:
+    image: distortedlogic/sitedata:edge
+    build:
+      context: ./sitedata
+    container_name: sitedata
+    shm_size: 4gb 
+    volumes:
+      - type: bind
+        source: ./sitedata/backups
+        target: /backups
+      - type: bind
+        source: ./sitedata/docker-volume
+        target: /var/lib/postgresql/data
+    env_file:
+      - ./.env
+    ports:
+      - 5432:5432
+  trainingdata:
+    image: distortedlogic/trainingdata:edge
+    build:
+      context: ./trainingdata
+    container_name: trainingdata
+    shm_size: 4gb 
+    volumes:
+      - type: bind
+        source: ./trainingdata/backups
+        target: /backups
+      - type: bind
+        source: ./trainingdata/docker-volume
+        target: /var/lib/postgresql/data
+    env_file:
+      - ./.env
+    ports:
+    - 5433:5432
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    volumes:
+      - type: bind
+        source: ./rabbitmq/data/
+        target: /var/lib/rabbitmq/
+      - type: bind
+        source: ./rabbitmq/log/
+        target: /var/log/rabbitmq
+    # environment:
+    #   RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+    #   RABBITMQ_DEFAULT_USER: "rabbitmq"
+    #   RABBITMQ_DEFAULT_PASS: "rabbitmq"
+    #   RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - 5672:5672
+      - 15672:15672
+    # logging:
+    #   driver: none
+  redismod:
+    image: distortedlogic/redismod:edge
+    container_name: redismod
+    build:
+      context: ./redis/redismod
+    entrypoint: "/usr/local/bin/redis-server"
+    command: "--include /usr/local/etc/redis/redis.conf --loadmodule /usr/lib/redis/modules/rejson.so --loadmodule /usr/lib/redis/modules/redisearch.so"
+    volumes:
+      - type: bind
+        source: ./redis/redismod/redis.conf
+        target: /usr/local/etc/redis/redis.conf
+        read_only: true
+    ports:
+      - 6379:6379
+  redisai:
+    image: distortedlogic/redisai:edge
+    container_name: redisai
+    build:
+      context: ./redis/redisai
+    entrypoint: "/usr/local/bin/redis-server"
+    command: "--include /usr/local/etc/redis/redis.conf --loadmodule /usr/lib/redis/modules/redisai.so"
+    volumes:
+      - type: bind
+        source: ./redis/redisai/redis.conf
+        target: /usr/local/etc/redis/redis.conf
+        read_only: true
+    ports:
+      - 6380:6379
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+  #   container_name: elasticsearch
+  #   environment:
+  #     - node.name=elasticsearch
+  #     - cluster.name=es-docker-cluster
+  #     - cluster.initial_master_nodes=elasticsearch
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - elasticsearch:/usr/share/elasticsearch/data
+  #   ports:
+  #     - 9200:9200
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.10.2
+  #   container_name: kibana
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     ELASTICSEARCH_URL: http://elasticsearch:9200
+  #     ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   logging:
+  #     driver: none
+  # portainer:
+  #   image: portainer/portainer-ce
+  #   container_name: portainer
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer:/data portainer/portainer-ce
+  #   ports:
+  #     - 8000:8000
+  #     - 9000:9000
+  # traefik:
+  #   image: distortedlogic/traefik:latest
+  #   container_name: traefik
+  #   build: ./traefik
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #     - 8080:8080
+  #   labels:
+  #     - traefik.http.routers.dashboard.service=api@internal
+  #     - traefik.http.routers.dashboard.entrypoints=unsecure
+  #     - traefik.http.services.dashboard.loadbalancer.server.port=8080
+  #     - traefik.enable=true
+  #     - traefik.http.routers.metrics.entrypoints=unsecure
+  #     - traefik.http.routers.metrics.rule=PathPrefix(`/metrics`)
+  #     - traefik.http.routers.metrics.service=metrics
+  #     - traefik.http.services.metrics.loadbalancer.server.port=5443
+  # prometheus:
+  #     image: prom/prometheus
+  #     container_name: prometheus
+  #     volumes:
+  #       - ./prometheus/:/etc/prometheus/
+  #       - prometheus:/prometheus
+  #     command:
+  #       - '--config.file=/etc/prometheus/prometheus.yml'
+  #       - '--storage.tsdb.path=/prometheus'
+  #       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+  #       - '--web.console.templates=/usr/share/prometheus/consoles'
+  #     labels:
+  #       - traefik.enable=true
+  #       - traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)
+  #       - traefik.http.routers.dashboard.entrypoints=unsecure
+  #       - traefik.http.services.prometheus.loadbalancer.server.port=9090
+  #     ports:
+  #       - 9090:9090
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   depends_on:
+  #     - prometheus
+  #   volumes:
+  #     - grafana:/var/lib/grafana
+  #     - ./grafana/provisioning/:/etc/grafana/provisioning/
+  #   env_file:
+  #     - ./grafana/config.monitoring
+  #   user: "104"
+  #   ports:
+  #     - 2000:3000
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.grafana.rule=Host(`grafana.localhost`)
+  #     - traefik.http.routers.grafana.service=grafana
+  #     - traefik.http.routers.dashboard.entrypoints=unsecure
+  #     - traefik.http.services.grafana.loadbalancer.server.port=3000
+  # logstash:
+  #   image: logstash:8.1.0
+  #   container_name: logstash
+  #   ports:
+  #     - 9600:9600
+  #   command: logstash
+# volumes:
+#   prometheus:
+#   grafana:
+#   portainer:
+#   elasticsearch:
+
