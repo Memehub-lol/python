@@ -17,6 +17,6 @@ class TaskContext(Singleton):
 
 def create_celery_app():
     celery = Celery(broker=RabbitMQ.url(), include=TASK_LIST)
-    _: Any = celery.config_from_object("config.celery")
+    _: Any = celery.config_from_object("src.celery.config")
     celery.Task = TaskContext
     return celery

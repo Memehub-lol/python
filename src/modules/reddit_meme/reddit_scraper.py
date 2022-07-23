@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import ClassVar, Iterator, TypedDict, cast
 
 import arrow
+import numpy as np
 import pandas as pd
 from praw.reddit import Reddit, Submission
 from sqlalchemy import and_, func, select
@@ -98,12 +99,14 @@ class RedditMemeScrapper:
         clause = and_(subreddit_clause, RedditMemes.created_at > max_ts.shift(days=-1).datetime)
         with RedditMemeRepo.sessionmaker() as session:
             reddit_id_to_meme = {meme.reddit_id: meme for meme in session.execute(select(RedditMemes).where(clause)).scalars()}
-            stmt = str(select(RedditMemes.reddit_id, RedditMemes.upvotes, RedditMemes.created_at, RedditMemes.percentile).where(clause))
-            df = pd.read_sql(stmt, session.bind, columns=["reddit_id", "upvotes", "created_at", "percentile"],)
+            df = pd.DataFrame.from_records([{"reddit_id": meme.reddit_id,
+                                             "upvotes": meme.upvotes,
+                                             "created_at": meme.created_at,
+                                             "percentile": meme.percentile} for meme in reddit_id_to_meme.values()])
             while max_ts < arrow.utcnow().floor("hour").shift(days=-1, seconds=-1):
                 if verbose:
                     logger.info(max_ts.format("YYYY-MM-DD HH:mm:ss"))
-                mask = df["created_at"].gt(max_ts.naive) & df["created_at"].lt(max_ts.shift(days=1).naive)
+                mask = df["created_at"].gt(pd.Timestamp(max_ts.naive)) & df["created_at"].lt(pd.Timestamp(max_ts.shift(days=1).naive))
                 frame = df.loc[mask, ["upvotes", "reddit_id", "percentile"]]
                 frame["percentile"] = frame["upvotes"].rank(pct=True)
                 for _, row in frame.loc[frame["percentile"].isna()].iterrows():

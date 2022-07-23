@@ -17,8 +17,8 @@ def AiModelRunner():
     # ModelRunner(entity=Entity.Meme,is_celery=True).execute()
 
 
-@CELERY.task(name="Reddit", unique_on=[], lock_expiry=60 * 60 * 12)
+@CELERY.task(name="RedditScrapper", unique_on=[], lock_expiry=60 * 60 * 12)
 def Reddit():
     logger.info("Reddit Scraper Task Started")
     RedditMemeService.praw_memes(verbose=False)
-    # RedditMemeService.calc_percentiles(verbose=False)
+    RedditMemeService.calc_percentiles(verbose=False)

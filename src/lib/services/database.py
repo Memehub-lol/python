@@ -16,7 +16,7 @@ class Database(Enum):
 databases = {Database.SITE: {"protocol": "postgresql",
                              "user": os.environ["DATABASE_USER"],
                              "password": os.environ["DATABASE_PASSWORD"],
-                             "host": "sitedata" if Environment.is_docker else "127.0.0.1",
+                             "host": "site-db" if Environment.is_docker else "127.0.0.1",
                              "port": 5432,
                              "db_name": "postgres"},
              Database.TRAINING: {"protocol": "postgresql",
