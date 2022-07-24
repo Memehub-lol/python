@@ -1,7 +1,7 @@
 import json
 import random
 from datetime import datetime, timedelta
-from typing import ClassVar, Iterator, TypedDict, cast
+from typing import ClassVar, Iterator, TypedDict
 
 import arrow
 import numpy as np
@@ -29,7 +29,6 @@ class PushshiftParams(TypedDict):
 
 class RedditMemeScrapper:
     reddit_objs: ClassVar[list[Reddit]] = get_reddit_objs()
-    record_percentile_every_x_hours: ClassVar[int] = 24
     pushshift: ClassVar[PushshiftParams] = {"query_limit": 100,
                                             "batch_size": 1_000,
                                             "uri": r"https://api.pushshift.io/reddit/search/submission?subreddit={}&after={}&before={}&size={}"}
@@ -39,7 +38,7 @@ class RedditMemeScrapper:
         try:
             submission: Submission = random.choice(cls.reddit_objs).submission(id=submission_id)
             if not submission.stickied:
-                if any(submission.url.endswith(filetype)for filetype in [".jpg", ".jpeg", ".png"]):
+                if any(submission.url.endswith(filetype) for filetype in [".jpg", ".jpeg", ".png"]):
                     return RedditMemeRepo.denorm_reddit_submission(submission)
         except Exception as e:
             logger.error("PRAW: %s", e)
@@ -49,9 +48,9 @@ class RedditMemeScrapper:
         end_at = int((datetime.utcnow().replace(second=0, minute=0) - timedelta(days=grace_period)).timestamp())
         with site_session_maker() as session:
             maybe_start_at = session.execute(select(func.max(RedditMemes.timestamp)).where(RedditMemes.subreddit == subreddit)).scalar()
-        start_at = maybe_start_at or int((datetime.utcnow().replace(hour=0, second=0, minute=0) - timedelta(days=31)).timestamp())
-        done = False
+        start_at = maybe_start_at or int((datetime.utcnow().replace(hour=0, second=0, minute=0) - timedelta(days=62)).timestamp())
         logger.info("PushShift Ids: from %s to %s", datetime.fromtimestamp(start_at), datetime.fromtimestamp(end_at))
+        done = False
         while not done:
             post_ids: list[str] = []
             while not done and len(post_ids) < cls.pushshift["batch_size"]:
@@ -89,29 +88,33 @@ class RedditMemeScrapper:
             cls._calc_percentile_sub(subreddit, verbose)
 
     @classmethod
-    def _calc_percentile_sub(cls, subreddit: str, verbose: bool = True):
+    def _calc_percentile_sub(cls, subreddit: str, verbose: bool = True, rank_over_days: int = 30):
         subreddit_clause = RedditMemes.subreddit == subreddit
-        clause = and_(subreddit_clause, RedditMemes.percentile != None)
-        timestamp = RedditMemeRepo.max_ts(clause) or RedditMemeRepo.min_ts(subreddit_clause)
-        if not timestamp:
+        percentile_subreddit_clause = and_(subreddit_clause, RedditMemes.percentile != None)
+        max_ts = RedditMemeRepo.max_ts(subreddit_clause)
+        min_ts = RedditMemeRepo.min_ts(subreddit_clause)
+        timestamp = RedditMemeRepo.max_ts(percentile_subreddit_clause) or min_ts
+        if not timestamp or not max_ts or not min_ts or timedelta(seconds=max_ts-min_ts) < timedelta(days=rank_over_days):
             return
-        max_ts = arrow.get(timestamp).ceil("hour").shift(days=1)
-        clause = and_(subreddit_clause, RedditMemes.created_at > max_ts.shift(days=-1).datetime)
+        start_dt = arrow.get(timestamp).floor("hour")
+        clause = and_(subreddit_clause, RedditMemes.created_at > start_dt.datetime)
         with RedditMemeRepo.sessionmaker() as session:
             reddit_id_to_meme = {meme.reddit_id: meme for meme in session.execute(select(RedditMemes).where(clause)).scalars()}
             df = pd.DataFrame.from_records([{"reddit_id": meme.reddit_id,
                                              "upvotes": meme.upvotes,
                                              "created_at": meme.created_at,
                                              "percentile": meme.percentile} for meme in reddit_id_to_meme.values()])
-            while max_ts < arrow.utcnow().floor("hour").shift(days=-1, seconds=-1):
-                if verbose:
-                    logger.info(max_ts.format("YYYY-MM-DD HH:mm:ss"))
-                mask = df["created_at"].gt(pd.Timestamp(max_ts.naive)) & df["created_at"].lt(pd.Timestamp(max_ts.shift(days=1).naive))
-                frame = df.loc[mask, ["upvotes", "reddit_id", "percentile"]]
+            end_ts = arrow.utcnow().floor("hour").shift(days=-1, seconds=-1)
+            while start_dt.shift(days=rank_over_days) < end_ts:
+                create_at_col = df["created_at"].astype(np.int64).divide(1_000_000_000)
+                mask_start_ranking = create_at_col.gt(start_dt.timestamp())
+                mask_end_ranking = create_at_col.lt(start_dt.shift(days=rank_over_days).timestamp())
+                frame = df.loc[mask_start_ranking & mask_end_ranking, ["upvotes", "reddit_id", "percentile"]]
                 frame["percentile"] = frame["upvotes"].rank(pct=True)
-                for _, row in frame.loc[frame["percentile"].isna()].iterrows():
-                    reddit_id = cast(str, row["reddit_id"])
-                    percentile = cast(float, row["percentile"])
-                    reddit_id_to_meme[reddit_id].percentile = percentile
+                mask_end_window = create_at_col.lt(start_dt.shift(days=rank_over_days//2+1).timestamp())
+                for _, row in frame.loc[mask_end_window].iterrows():
+                    meme = reddit_id_to_meme[row["reddit_id"]]
+                    if not meme.percentile:
+                        meme.percentile = row["percentile"]
                 session.commit()
-                max_ts = max_ts.shift(hours=cls.record_percentile_every_x_hours)
+                start_dt = start_dt.shift(days=1)
