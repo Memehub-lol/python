@@ -1,5 +1,4 @@
 FROM python:3.10.5-buster as builder
-WORKDIR /app
 ENV PYTHONUNBUFFERED=1 
 ENV PYTHONDONTWRITEBYTECODE=1 
 ENV TERM=xterm 
@@ -11,6 +10,7 @@ RUN curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com
   echo "deb https://packages.doppler.com/public/cli/deb/debian any-version main" | tee /etc/apt/sources.list.d/doppler-cli.list && \
   apt-get update && \
   apt-get -y install doppler
+WORKDIR /app
 RUN pip install torch===1.10.0+cpu torchvision===0.11.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
