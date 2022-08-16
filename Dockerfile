@@ -12,7 +12,7 @@ RUN curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com
 	echo "deb https://packages.doppler.com/public/cli/deb/debian any-version main" | tee /etc/apt/sources.list.d/doppler-cli.list && \
 	apt-get update && \
 	apt-get -y install doppler
-WORKDIR /app
+WORKDIR /app/
 USER root
 RUN --mount=type=cache,target=/root/.cache/pip pip install torch===1.12.0+cpu \
 	torchvision===0.13.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
