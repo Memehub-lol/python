@@ -11,7 +11,7 @@ RUN curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com
   apt-get update && \
   apt-get -y install doppler
 WORKDIR /app
-RUN pip install torch===1.10.0+cpu torchvision===0.11.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install torch===1.12.0+cpu torchvision===0.13.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY . .
