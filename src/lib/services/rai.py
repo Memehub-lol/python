@@ -2,13 +2,12 @@ from typing import Any, cast
 
 from redisai.client import Client
 from src.lib import logger
-from src.lib.environment import Environment
 from torch import cuda
 
 
 class RedisConfig:
-    host = "redisai" if Environment.is_docker else "127.0.0.1"
-    port = 6379 if Environment.is_docker else 6380
+    host = "redisai"
+    port = 6379
 
 
 class Rai:

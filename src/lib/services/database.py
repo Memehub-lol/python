@@ -5,7 +5,6 @@ from typing import Callable
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session, sessionmaker
-from src.lib.environment import Environment
 
 
 class Database(Enum):
@@ -16,14 +15,14 @@ class Database(Enum):
 databases = {Database.SITE: {"protocol": "postgresql",
                              "user": os.environ["DATABASE_USER"],
                              "password": os.environ["DATABASE_PASSWORD"],
-                             "host": "site-db" if Environment.is_docker else "127.0.0.1",
+                             "host": "site-db",
                              "port": 5432,
                              "db_name": "postgres"},
              Database.TRAINING: {"protocol": "postgresql",
                                  "user": os.environ["DATABASE_USER"],
                                  "password": os.environ["DATABASE_PASSWORD"],
-                                 "host": "trainingdata" if Environment.is_docker else "127.0.0.1",
-                                 "port": 5432 if Environment.is_docker else 5433,
+                                 "host": "trainingdata",
+                                 "port": 5432,
                                  "db_name": "postgres"}}
 
 
