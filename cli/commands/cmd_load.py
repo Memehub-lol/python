@@ -24,7 +24,7 @@ def stonk_market(reload: bool):
     """
     meme_version = Versioner.meme_clf(lts=True)
     folder = ESaveFolder.JIT_GPU if cuda.is_available() else ESaveFolder.JIT_CPU
-    jit_folder = MemeClfPath.build_path_by_version(folder, meme_version, backup=False)
+    jit_folder = "./" + MemeClfPath.build_path_by_version(folder, meme_version, backup=False)
     maybe_names_in_redis: set[str] = Rai.get_currently_loaded([meme_version]) if not reload else set()
     logger.info("Loading MemeClf to redisai")
     names_on_disk = set([os.path.splitext(filename)[0] for filename in os.listdir(jit_folder)])
