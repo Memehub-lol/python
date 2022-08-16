@@ -5,7 +5,9 @@ services:
     build: .
     container_name: flask
     restart: on-failure
-    command: sh /start.flask.sh
+    command: doppler run -- sh /start.flask.sh
+    environment:
+      DOPPLER_TOKEN: ${DOPPLER_TOKEN_PYTHON}
     volumes:
       - .:/app
     ports:

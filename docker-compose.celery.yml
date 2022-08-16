@@ -5,7 +5,9 @@ services:
     build: .
     container_name: celery
     restart: on-failure
-    command: celery -A src.celery.CELERY worker -B -l info
+    command: doppler run -- celery -A src.celery.CELERY worker -B -l info
+    environment:
+      DOPPLER_TOKEN: ${DOPPLER_TOKEN_PYTHON}
     volumes:
       - .:/app/
   celery-monitor:
@@ -13,11 +15,12 @@ services:
     build:
       context: .
     container_name: flower
-    command: celery -A src.celery.CELERY flower
+    command: doppler run -- celery -A src.celery.CELERY flower
+    environment:
+      DOPPLER_TOKEN: ${DOPPLER_TOKEN_PYTHON}
     restart: on-failure
     volumes:
       - .:/app/
-      - ./.env.docker:/app/.env
     ports:
       - 5555:5555
     logging:
