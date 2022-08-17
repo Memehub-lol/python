@@ -10,7 +10,8 @@ from src.modules.reddit_meme.reddit_meme_service import RedditMemeService
 
 @CELERY.task(name=CELERYBEAT_SCHEDULE["ai_model_runner"]["task"], unique_on=[], lock_expiry=60 * 60 * 12)
 def AiModelRunner():
-    pass
+    logger.info("AiModelRunner Unimplemented")
+    return
     logger.info("AiModelRunner Task Started")
     models = Rai.get_client().modelscan()
     if not models or Versioner.meme_clf(lts=True) != models[0][1]:
