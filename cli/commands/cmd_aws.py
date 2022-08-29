@@ -1,5 +1,5 @@
 import click
-from src.lib.services.aws import AWS
+from src.services.aws import AWS
 
 
 @click.group()

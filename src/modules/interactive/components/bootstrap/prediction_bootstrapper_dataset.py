@@ -6,8 +6,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.sql.expression import case
 from src.lib import logger
 from src.lib.image_url import ImageUrlUtils
-from src.lib.services.database import (site_session_maker,
-                                       training_session_maker)
+from src.services.database import (site_session_maker,
+                                   training_session_maker)
 from src.modules.ai.transforms import Transformations
 from src.modules.generated.site_tables import RedditMemes
 from src.modules.training_database.training_database_entities import \

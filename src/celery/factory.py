@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 from celery_singleton import Singleton
-from src.lib.services.rabbit_mq import RabbitMQ
+from src.services.rabbit_mq import RabbitMQ
 
 from celery.app.base import Celery
 

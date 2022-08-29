@@ -1,9 +1,6 @@
 import os
 
-from dotenv import load_dotenv
 from torch import cuda, device
-
-_ = load_dotenv()
 
 
 class Environment:

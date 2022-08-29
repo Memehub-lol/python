@@ -1,5 +1,5 @@
 from sqlalchemy import case, func, select
-from src.lib.services.database import training_session_maker
+from src.services.database import training_session_maker
 from src.lib.utils import display_dict_as_df
 from src.modules.training_database.training_database_entities import \
     ValidationEntity

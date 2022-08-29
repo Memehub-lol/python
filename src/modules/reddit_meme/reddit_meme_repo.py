@@ -7,7 +7,7 @@ from sqlalchemy import Boolean, func, select
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.operators import ColumnOperators
-from src.lib.services.database import site_session_maker
+from src.services.database import site_session_maker
 from src.modules.base import BaseRepo
 from src.modules.generated.site_dataclasses import \
     RedditMemes as RedditMemesDataclass

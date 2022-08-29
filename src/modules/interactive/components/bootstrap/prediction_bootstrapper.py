@@ -4,8 +4,8 @@ from typing import cast
 import torch
 from sqlalchemy import select
 from src.lib.environment import Environment
-from src.lib.services.database import (site_session_maker,
-                                       training_session_maker)
+from src.services.database import (site_session_maker,
+                                   training_session_maker)
 from src.modules.ai.meme_clf.meme_clf_net import MemeClf
 from src.modules.ai.static_data import StaticData
 from src.modules.generated.site_tables import TemplatePredictions

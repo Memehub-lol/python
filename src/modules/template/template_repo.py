@@ -2,7 +2,7 @@ from typing import Callable, ClassVar, Type
 
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
-from src.lib.services.database import site_session_maker
+from src.services.database import site_session_maker
 from src.modules.base import BaseRepo
 from src.modules.generated.site_dataclasses import \
     Templates as TemplatesDataclass

@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   celery:
-    image: distortedlogic/flask:latest
+    image: distortedlogic/python:${IMAGE_TAG}
     build: .
     container_name: celery
     restart: on-failure
@@ -11,10 +11,10 @@ services:
     volumes:
       - .:/app/
   celery-monitor:
-    image: distortedlogic/flower:latest
+    image: distortedlogic/flower:${IMAGE_TAG}
     build:
       context: .
-    container_name: flower
+    container_name: flower-${IMAGE_TAG}
     command: doppler run -- celery -A src.celery.CELERY flower
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN_PYTHON}

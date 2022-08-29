@@ -8,7 +8,7 @@ import torch
 from PIL import Image as Img
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
-from src.lib.services.database import training_session_maker
+from src.services.database import training_session_maker
 from src.modules.ai.static_data import StaticData
 from src.modules.ai.transforms import Transformations
 from src.modules.training_database.training_database_entities import (

@@ -1,9 +1,9 @@
 version: "3.7"
 services:
   flask:
-    image: distortedlogic/flask:latest
+    image: distortedlogic/python:${IMAGE_TAG}
     build: .
-    container_name: flask
+    container_name: flask-${IMAGE_TAG}
     restart: on-failure
     command: doppler run -- sh /start.flask.sh
     environment:

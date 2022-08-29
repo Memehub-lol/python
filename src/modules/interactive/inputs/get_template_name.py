@@ -1,4 +1,4 @@
-from src.lib.services.database import site_session_maker
+from src.services.database import site_session_maker
 from src.modules.generated.site_tables import Templates
 from src.modules.interactive.inputs.input_handler import options_input_handler
 from sqlalchemy import select
