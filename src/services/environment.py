@@ -40,6 +40,7 @@ class Environment:
     _env_vars = cast(EnvVars, os.environ)
 
     IS_PROD = _env_vars["FLASK_ENV"] == "production"
+    IS_LOCAL = _env_vars["FLASK_ENV"] == "local"
     ORIGIN_WHITELIST = json.loads(_env_vars["ORIGIN_WHITELIST"])
 
     FLASK_CONFIG = (_env_vars["SECRET"], _env_vars["FLASK_ENV"], IS_PROD)
@@ -82,6 +83,7 @@ class Environment:
                 cls._env_vars["REDDIT_OAUTH_5"],
                 cls._env_vars["REDDIT_OAUTH_6"],
                 cls._env_vars["REDDIT_OAUTH_7"]]
+
 
 class Database(Enum):
     SITE = "SITE"
