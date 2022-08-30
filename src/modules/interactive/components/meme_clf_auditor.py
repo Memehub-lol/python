@@ -8,7 +8,7 @@ from IPython.core.display import clear_output
 from matplotlib.axes import Axes
 from sqlalchemy import select
 from src.lib import utils
-from src.lib.environment import Environment
+from src.services.environment import Environment
 from src.lib.image_url import ImageUrlUtils
 from src.services.database import (site_session_maker,
                                        training_session_maker)
@@ -46,7 +46,7 @@ class IPyMemeClfAuditor(IPyProtocol):
                                                                 meme_version=cls.meme_version,
                                                                 num_workers=1):
             with torch.no_grad():
-                raw_dense = meme_clf.forward(tensors.to(Environment.device)).cpu().detach().numpy()
+                raw_dense = meme_clf.forward(tensors.to(Environment.PYTORCH_DEVICE)).cpu().detach().numpy()
             int_names = list(map(str, raw_dense))
             names = itemgetter(*int_names)(static_data.get_num_name())
             for tensor, id, name in zip(tensors, ids, names):

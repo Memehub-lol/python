@@ -1,36 +1,10 @@
-import os
 from enum import Enum
 from multiprocessing import cpu_count
 from typing import Callable
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import Session, sessionmaker
-
-
-class Database(Enum):
-    SITE = "SITE"
-    TRAINING = "TRAINING"
-
-    def get_config(self):
-        return {
-            Database.SITE: ("postgresql",
-                            os.environ["POSTGRES_USER"],
-                            os.environ["POSTGRES_PASSWORD"],
-                            os.environ["POSTGRES_HOST"],
-                            os.environ["POSTGRES_PORT"],
-                            os.environ["POSTGRES_DB"]),
-            Database.TRAINING: ("postgresql",
-                                os.environ["POSTGRES_USER"],
-                                os.environ["POSTGRES_PASSWORD"],
-                                "trainingdata",
-                                os.environ["POSTGRES_PORT"],
-                                os.environ["POSTGRES_DB"])
-        }[self]
-
-    def url(self):
-        protocol, user, password, host, port, db_Name = self.get_config()
-        return f"{protocol}://{user}:{password}@{host}:{port}/{db_Name}"
-
+from src.services.environment import Database
 
 pool_size = cpu_count() + 2
 

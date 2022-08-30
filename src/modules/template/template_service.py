@@ -49,7 +49,7 @@ class TemplateService:
             return session.scalars(q).all()
 
     @classmethod
-    def build_db(cls, clear: bool = False):
+    def build_db(cls, clear: bool = False, verbose: bool = False):
         num_pages = 250
         with TemplateRepo.sessionmaker() as session:
             result = session.execute(select(Templates.imgflip_name.distinct())).scalars()
@@ -58,6 +58,7 @@ class TemplateService:
                                                 range(num_pages),
                                                 total=num_pages,
                                                 multi=False,
+                                                verbose=verbose,
                                                 label="imgflip template scrapper")
         with TemplateRepo.sessionmaker() as session:
             session.add_all({template.name: template for template in templates}.values())

@@ -2,23 +2,18 @@ import os
 from typing import Any, cast
 
 import ml2rt
+from src.modules.versioning import Versioner
 from redisai.client import Client
 from src.lib import logger
-from src.lib.versioning import Versioner
 from src.modules.ai.meme_clf.lib.meme_clf_path import ESaveFolder, MemeClfPath
-from src.services.rai import Rai
 from torch import cuda
 
-REDIS_CONFIG = {
-    "host": os.environ['REDIS_AI_HOST'],
-    "port": os.environ['REDIS_AI_PORT']
-}
+from src.services.environment import Environment
 
 
 class Rai:
     backend = "TORCH"
-    device = "GPU" if cuda.is_available() else "CPU"
-    client = Client(**REDIS_CONFIG)
+    client = Client(**Environment.REDIS_AI_CONFIG)
 
     @classmethod
     def delete(cls, name: str):
@@ -29,7 +24,7 @@ class Rai:
         try:
             _ = cls.client.modelstore(name,
                                       Rai.backend,
-                                      Rai.device,
+                                      Environment.REDIS_AI_DEVICE,
                                       model,
                                       tag=tag,
                                       inputs=cast(Any, None),

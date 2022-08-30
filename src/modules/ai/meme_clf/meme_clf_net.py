@@ -6,8 +6,8 @@ from typing import Any, Callable, ClassVar, Optional, TypedDict, cast
 import torch
 import torch.nn as nn
 from src.lib import decorators
-from src.lib.environment import Environment
-from src.lib.versioning import Versioner
+from src.services.environment import Environment
+from src.modules.versioning import Versioner
 from src.modules.ai.meme_clf.lib.meme_clf_path import ESaveFolder, MemeClfPath
 from torch import nn
 from torch._C import ScriptModule
@@ -95,7 +95,7 @@ class MemeClf(nn.Module):
     def _model_on_cpu(self):
         _ = self.to(torch.device("cpu"))
         yield
-        _ = self.to(Environment.device)
+        _ = self.to(Environment.PYTORCH_DEVICE)
 
     @classmethod
     def _get_path(cls, folder: ESaveFolder, name: str, meme_version: str, backup: bool):
@@ -107,7 +107,7 @@ class MemeClf(nn.Module):
     @decorators.on_error_use_backup()
     def load_features_model(cls, meme_version: str, backup: bool = False):
         path = cls._get_path(ESaveFolder.REG, "features", meme_version=meme_version, backup=backup)
-        return cast(nn.Module, torch.load(path)).to(Environment.device)
+        return cast(nn.Module, torch.load(path)).to(Environment.PYTORCH_DEVICE)
 
     @decorators.do_backup_also()
     def save(self, backup: bool = False) -> None:
@@ -136,12 +136,12 @@ class MemeClf(nn.Module):
         kwargs, state = cast(tuple[Any, Any], torch.load(path))
         model = MemeClf(**kwargs)
         _ = model.load_state_dict(state)
-        return model.to(Environment.device)
+        return model.to(Environment.PYTORCH_DEVICE)
 
     @classmethod
     def load(cls, fresh: bool, sgd_kwargs: SGDKwargs, output_size: int, meme_version: Optional[str] = None, lts: Optional[bool] = None):
         meme_version = Versioner.reduce_to_meme_version(meme_version, lts)
         if fresh:
             assert sgd_kwargs, output_size
-            return cls(sgd_kwargs=sgd_kwargs, output_size=output_size, meme_version=meme_version).to(Environment.device)
+            return cls(sgd_kwargs=sgd_kwargs, output_size=output_size, meme_version=meme_version).to(Environment.PYTORCH_DEVICE)
         return cls._load_from_disk_by_version(meme_version=meme_version, backup=False)

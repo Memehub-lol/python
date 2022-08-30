@@ -1,9 +1,10 @@
-import os
+
+from src.services.environment import Environment
 
 from celery.schedules import crontab
 
-CELERY_BROKER_URL = "pyamqp://rabbitmq:5672"
-CELERY_RESULT_BACKEND = f"redis://{os.environ['REDIS_MOD_HOST']}:{os.environ['REDIS_MOD_PORT']}"
+CELERY_BROKER_URL = Environment.RABBIT_MQ_URL
+CELERY_RESULT_BACKEND = Environment.REDIS_MOD_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

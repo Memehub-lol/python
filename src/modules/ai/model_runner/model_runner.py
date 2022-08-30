@@ -7,7 +7,7 @@ from IPython.core.display import clear_output
 from sqlalchemy import func, select
 from src.lib import logger, utils
 from src.services.database import site_session_maker
-from src.lib.versioning import Versioner
+from src.modules.versioning import Versioner
 from src.modules.ai.ai_model_service import AiModelService
 from src.modules.ai.model_runner.model_runner_dataset import (
     Entity, ImageError, MemeClfPreditingDataset)

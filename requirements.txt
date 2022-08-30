@@ -18,6 +18,7 @@ flower == 1.0.0
 billiard == 3.6.4.0
 redis
 redisai
+dependency-injector == 4.40.0
 ml2rt == 0.2.0
 pytesseract == 0.3.9
 

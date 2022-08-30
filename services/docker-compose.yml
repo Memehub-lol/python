@@ -39,7 +39,7 @@ services:
     #   driver: none
   redisai:
     image: distortedlogic/redisai:edge
-    container_name: redisai
+    container_name: redisai-${IMAGE_TAG}
     build:
       context: ./redis/redisai
     entrypoint: "/usr/local/bin/redis-server"
@@ -49,8 +49,6 @@ services:
         source: ./redis/redisai/redis.conf
         target: /usr/local/etc/redis/redis.conf
         read_only: true
-    ports:
-      - 6380:6379
   # elasticsearch:
   #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
   #   container_name: elasticsearch

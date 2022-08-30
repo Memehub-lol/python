@@ -1,32 +1,27 @@
 
-import os
+
 from functools import partial
 from pathlib import Path
 from typing import Any, Optional
 
 import boto3
 from botocore.exceptions import ClientError
-from dotenv import load_dotenv
 from src.lib import utils
 
-_ = load_dotenv()
+from src.services.environment import Environment
 
-
-class AWSEnv:
-    id = os.environ["AWS_ID"]
-    key = os.environ["AWS_KEY"]
-    bucket = "memehub-development"
+aws_access_key_id, aws_secret_access_key, default_s3_bucket = Environment.AWS_CONFIG
 
 
 class AWS:
-    s3: Any = boto3.client("s3", aws_access_key_id=AWSEnv.id, aws_secret_access_key=AWSEnv.key)
+    s3: Any = boto3.client("s3", aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
 
     @classmethod
     def s3_bucket(cls):
         return AWS.s3.Bucket("memehub")
 
     @classmethod
-    def upload_to_aws(cls, file_path: str, Key: str, Bucket: str = AWSEnv.bucket):
+    def upload_to_aws(cls, file_path: str, Key: str, Bucket: str = default_s3_bucket):
         try:
             cls.s3.head_object(Bucket=Bucket, Key=Key)
         except ClientError:

@@ -11,7 +11,7 @@ from sqlalchemy.sql.expression import ClauseElement
 from src.lib.errors import Errors
 from src.lib.image_url import ImageUrlUtils
 from src.services.database import site_session_maker
-from src.lib.versioning import Versioner
+from src.modules.versioning import Versioner
 from src.modules.ai.transforms import Transformations
 from src.modules.generated.site_tables import (Memes, RedditMemes,
                                                TemplatePredictions)

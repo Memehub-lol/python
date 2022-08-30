@@ -1,4 +1,4 @@
-from src.lib.versioning import Versioner
+from src.modules.versioning import Versioner
 from src.modules.interactive.inputs.input_handler import options_input_handler
 
 

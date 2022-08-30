@@ -3,10 +3,11 @@ from functools import partial
 
 import inflection
 from flask_cors import CORS
+from src.container import Container
 from src.flask.routes.ai_routes import ai_routes
 from src.lib import logger
-from src.lib.environment import Environment
 from src.lib.utils import convert_keys
+from src.services.environment import Environment
 from werkzeug.exceptions import HTTPException
 
 from flask.app import Flask
@@ -16,14 +17,16 @@ from flask.wrappers import Response
 
 
 def create_app():
+    container = Container()
     app = Flask(__name__, instance_relative_config=True)
-    _ = CORS(app, origins=Environment.whitelist)
-    app.config.from_object("config.flask")
+    _ = CORS(app, origins=Environment.ORIGIN_WHITELIST)
+    app.config.from_object("src.flask.config")
+    app.container = container
     app.register_blueprint(ai_routes)
 
     @app.before_request
     def incoming_camel_to_snake():
-        if request.method !="GET":
+        if request.method != "GET":
             convert_keys(request.json, converter=inflection.underscore)
 
     @app.after_request

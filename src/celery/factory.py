@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 from celery_singleton import Singleton
-from src.services.rabbit_mq import RabbitMQ
+from src.services.environment import Environment
 
 from celery.app.base import Celery
 
@@ -16,7 +16,7 @@ class TaskContext(Singleton):
 
 
 def create_celery_app():
-    celery = Celery(broker=RabbitMQ.url(), include=TASK_LIST)
+    celery = Celery(broker=Environment.RABBIT_MQ_URL, include=TASK_LIST)
     _: Any = celery.config_from_object("src.celery.config")
     celery.Task = TaskContext
     return celery

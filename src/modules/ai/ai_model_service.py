@@ -4,7 +4,7 @@ from typing import Any, Optional, cast
 import numpy as np
 from PIL import Image as Img
 from src.lib.image_url import ImageUrlUtils
-from src.lib.versioning import Versioner
+from src.modules.versioning import Versioner
 from src.modules.ai.static_data import StaticData
 from src.modules.ai.transforms import Transformations
 from src.services.rai import Rai

@@ -3,7 +3,7 @@ from typing import cast
 
 import torch
 from sqlalchemy import select
-from src.lib.environment import Environment
+from src.services.environment import Environment
 from src.services.database import (site_session_maker,
                                    training_session_maker)
 from src.modules.ai.meme_clf.meme_clf_net import MemeClf
@@ -33,7 +33,7 @@ class PredictionBootstrapper(IPyProtocol):
               tqdm(total=count) as pbar):
             for meme_ids, val_ids, urls, tensors in loader:
                 with torch.no_grad():
-                    raw_dense = meme_clf.forward(tensors.to(Environment.device)).cpu().detach().numpy()
+                    raw_dense = meme_clf.forward(tensors.to(Environment.PYTORCH_DEVICE)).cpu().detach().numpy()
                 int_names = list(map(str, raw_dense))
                 names = itemgetter(*int_names)(static_data.get_num_name())
                 for meme_id, val_id, url, name in zip(meme_ids, val_ids.numpy(), urls, names):

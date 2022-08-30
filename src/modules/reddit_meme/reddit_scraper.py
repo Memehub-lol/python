@@ -11,7 +11,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.sql.elements import and_
 from sqlalchemy.sql.expression import and_
 from src.lib import logger, utils
-from src.lib.environment import Environment
+from src.services.environment import Environment
 from src.services.database import site_session_maker
 from src.modules.generated.site_tables import RedditMemes
 from src.modules.reddit_meme.reddit_meme_repo import RedditMemeRepo

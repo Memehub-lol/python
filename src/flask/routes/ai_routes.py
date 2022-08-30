@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, cast
 from flask.blueprints import Blueprint
 from flask.globals import request
 from src.modules.ai.ai_model_service import AiModelService
-from src.lib.versioning import Versioner
+from src.modules.versioning import Versioner
 
 ai_routes = Blueprint('ai_routes', __name__, url_prefix="/ai")
 

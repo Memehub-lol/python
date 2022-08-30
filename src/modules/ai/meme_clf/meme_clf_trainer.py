@@ -6,8 +6,8 @@ import arrow
 import torch
 from IPython.core.display import clear_output
 from src.lib import utils
-from src.lib.environment import Environment
-from src.lib.versioning import Versioner
+from src.services.environment import Environment
+from src.modules.versioning import Versioner
 from src.modules.ai.meme_clf.lib.meme_clf_ephemeral import Ephemeral
 from src.modules.ai.meme_clf.lib.meme_clf_eval_stats import EvalStats
 from src.modules.ai.meme_clf.lib.meme_clf_timer import Timer
@@ -74,7 +74,7 @@ class MemeClfTrainer:
             while self.model_stats.max_val_acc < self.settings.get_target_acc(dense_only=dense_only):
                 with self.timer.is_training(), tqdm(total=ESTIMATED_INTERATIONS) as pbar:
                     for idx, (inputs, labels) in enumerate(dataloader, 1):
-                        loss = self.model.train_step(inputs.to(Environment.device), labels.to(Environment.device), dense_only=dense_only)
+                        loss = self.model.train_step(inputs.to(Environment.PYTORCH_DEVICE), labels.to(Environment.PYTORCH_DEVICE), dense_only=dense_only)
                         self.ephemeral.losses.append(loss)
                         if idx % UPDATE_PBAR_EVERY == 0:
                             pbar.update(UPDATE_PBAR_EVERY)
@@ -94,14 +94,14 @@ class MemeClfTrainer:
 
     @torch.no_grad()
     def _predict(self, image: torch.Tensor) -> str:
-        return self._humanize_pred(int(self.model.forward(image.to(Environment.device).unsqueeze(0)).cpu().detach().item()))
+        return self._humanize_pred(int(self.model.forward(image.to(Environment.PYTORCH_DEVICE).unsqueeze(0)).cpu().detach().item()))
 
     @torch.no_grad()
     def _get_eval_stats(self, load_set: ELoadSet):
         correct, total = 0, 0
         for (inputs, labels) in self.dataloaders[load_set][1]:
-            pred = self.model.forward(inputs.to(Environment.device))
-            correct += int(torch.sum(pred == labels.to(Environment.device)).cpu().detach().item())
+            pred = self.model.forward(inputs.to(Environment.PYTORCH_DEVICE))
+            correct += int(torch.sum(pred == labels.to(Environment.PYTORCH_DEVICE)).cpu().detach().item())
             total += len(labels)
         return EvalStats(correct=correct, total=total, acc=correct/total)
 
