@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$ENV" != "local" ]; then
+if [ "$ENV" == "local" ]; then
   echo RUNNING ALEMBIC
   alembic -c alembic.docker.ini upgrade head
 else
