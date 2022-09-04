@@ -1,13 +1,13 @@
 import json
 import os
 from enum import Enum
-from typing import Literal, TypedDict, cast
+from typing import Literal, TypedDict, Union, cast
 
 from torch import cuda, device
 
 
 class EnvVars(TypedDict):
-    FLASK_ENV: Literal["local"] | Literal["development"] | Literal["staging"] | Literal["production"]
+    FLASK_ENV: Union[Literal["local"], Literal["development"], Literal["staging"], Literal["production"]]
     ORIGIN_WHITELIST: str
     SECRET: str
 

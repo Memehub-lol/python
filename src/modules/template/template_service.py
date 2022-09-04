@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import partial
 from typing import Any, cast
 
@@ -8,7 +9,7 @@ from src.lib import logger, utils
 from src.lib.template_data import (DONT_USE_TEMPLATES,
                                    REPLICATED_TEMPLATES_GROUPED,
                                    USER_TEMPLATES)
-from src.modules.generated.site_tables import Templates
+from src.modules.generated.site_tables import ImgflipTemplates
 from src.modules.template.template_repo import TemplateRepo
 
 
@@ -34,7 +35,7 @@ def scrape_template_data(page_number: int, db_names: dict[str, int]):
         if name not in DONT_USE_TEMPLATES:
             templates.append(dict(name=name, page=page, url=url, imgflip_name=imgflip_name))
     maybe_filtered = filter(lambda template: template["imgflip_name"] not in db_names, templates) if db_names else templates
-    return list(TemplateRepo.Dataclass(**template_data) for template_data in maybe_filtered)
+    return list(TemplateRepo.Dataclass(**template_data,created_at=datetime.utcnow()) for template_data in maybe_filtered)
 
 
 class TemplateService:
@@ -43,16 +44,16 @@ class TemplateService:
     @classmethod
     def get_train_names(cls, num_images: int) -> list[str]:
         with TemplateRepo.sessionmaker() as session:
-            q = (select(Templates.name)
-                 .where(Templates.num_images >= num_images)
-                 .where(Templates.name == Templates.imgflip_name))
+            q = (select(ImgflipTemplates.name)
+                 .where(ImgflipTemplates.num_images >= num_images)
+                 .where(ImgflipTemplates.name == ImgflipTemplates.imgflip_name))
             return session.scalars(q).all()
 
     @classmethod
     def build_db(cls, clear: bool = False, verbose: bool = False):
         num_pages = 250
         with TemplateRepo.sessionmaker() as session:
-            result = session.execute(select(Templates.imgflip_name.distinct())).scalars()
+            result = session.execute(select(ImgflipTemplates.imgflip_name.distinct())).scalars()
         db_names: dict[str, int] = {name: idx for idx, name in enumerate(result)}
         templates = utils.process_from_iterable(partial(scrape_template_data, db_names=db_names),
                                                 range(num_pages),

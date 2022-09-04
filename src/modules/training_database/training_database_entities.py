@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Union
 
 from sqlalchemy import DateTime
 from sqlalchemy import text as _text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Integer, String
@@ -50,5 +50,5 @@ class ValidationEntity(training_base):
     created_at = Column(DateTime(True), nullable=False, server_default=_text('now()'))
 
 
-TTrainingEntity = NotMemeEntity | NotTemplateEntity | TemplateEntity
+TTrainingEntity = Union[NotMemeEntity, NotTemplateEntity, TemplateEntity]
 training_entities: list[TTrainingEntity] = [NotMemeEntity, NotTemplateEntity, TemplateEntity]

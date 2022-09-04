@@ -6,8 +6,6 @@ import arrow
 import torch
 from IPython.core.display import clear_output
 from src.lib import utils
-from src.services.environment import Environment
-from src.modules.versioning import Versioner
 from src.modules.ai.meme_clf.lib.meme_clf_ephemeral import Ephemeral
 from src.modules.ai.meme_clf.lib.meme_clf_eval_stats import EvalStats
 from src.modules.ai.meme_clf.lib.meme_clf_timer import Timer
@@ -17,6 +15,8 @@ from src.modules.ai.meme_clf.meme_clf_training_dataset import (
     ELoadSet, MemeClfTrainingDataset)
 from src.modules.ai.meme_clf.model_stats import MemeClfModelStats
 from src.modules.ai.static_data import StaticData
+from src.modules.versioning import Versioner
+from src.services.environment import Environment
 from tqdm import tqdm
 
 sgd_kwargs: SGDKwargs = {"lr": 0.000_1,
@@ -77,7 +77,7 @@ class MemeClfTrainer:
                         loss = self.model.train_step(inputs.to(Environment.PYTORCH_DEVICE), labels.to(Environment.PYTORCH_DEVICE), dense_only=dense_only)
                         self.ephemeral.losses.append(loss)
                         if idx % UPDATE_PBAR_EVERY == 0:
-                            pbar.update(UPDATE_PBAR_EVERY)
+                            _ = pbar.update(UPDATE_PBAR_EVERY)
                 with self._in_eval(MemeClfLayer.get_layers(dense_only)):
                     self._update_stats()
                 self.display_stats()

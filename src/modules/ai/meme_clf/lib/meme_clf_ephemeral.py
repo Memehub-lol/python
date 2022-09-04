@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import cast
 
 import numpy as np
 from src.modules.ai.meme_clf.lib.meme_clf_eval_stats import EvalStats
@@ -16,5 +17,5 @@ class Ephemeral:
     def update(self, transforms: EvalStats, validation: EvalStats):
         self.transforms = transforms
         self.validation = validation
-        self.new_loss: float = np.mean(self.losses)
+        self.new_loss = cast(float, np.mean(self.losses))
         self.losses = []

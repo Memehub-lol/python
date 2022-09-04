@@ -10,13 +10,13 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm.session import Session
 from src.lib import logger, utils
 from src.lib.image_url import ImageUrlUtils
-from src.services.database import (site_session_maker,
-                                   training_session_maker)
 from src.lib.template_data import REPLICATED_TEMPLATES_GROUPED
-from src.modules.generated.site_dataclasses import Templates as TemplatesDC
-from src.modules.generated.site_tables import Templates
+from src.modules.generated.site_dataclasses import \
+    ImgflipTemplates as ImgflipTemplatesDC
+from src.modules.generated.site_tables import ImgflipTemplates
 from src.modules.training_database.training_database_entities import (
     NotMemeEntity, NotTemplateEntity, TemplateEntity, training_entities)
+from src.services.database import site_session_maker, training_session_maker
 
 num_pages = 1000
 
@@ -40,7 +40,7 @@ class EDataPath(Enum):
 
 
 with site_session_maker() as session:
-    templates: list[TemplatesDC] = session.scalars(select(Templates)).all()
+    templates: list[ImgflipTemplatesDC] = session.scalars(select(ImgflipTemplates)).all()
 
 
 def add_path_urls_from_page(page_num: int):
@@ -103,7 +103,7 @@ class TrainingDatabaseService:
 
     @classmethod
     def _add_template_image_count(cls, session: Session):
-        for template in session.scalars(select(Templates)):
+        for template in session.scalars(select(ImgflipTemplates)):
             files = os.listdir(EDataPath.IMGFLIP.folder(template.name)) + os.listdir(EDataPath.REDDIT.folder(template.name))
             template.num_images = len(files)
         session.commit()

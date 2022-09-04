@@ -1,17 +1,16 @@
 from datetime import datetime
-from typing import Any, Callable, ClassVar, Optional, Type
+from typing import Callable, ClassVar, Optional, Type
 from uuid import uuid4
 
 from praw.reddit import Submission
-from sqlalchemy import Boolean, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.operators import ColumnOperators
-from src.services.database import site_session_maker
 from src.modules.base import BaseRepo
 from src.modules.generated.site_dataclasses import \
     RedditMemes as RedditMemesDataclass
 from src.modules.generated.site_tables import RedditMemes, Redditors
+from src.services.database import site_session_maker
 
 
 class RedditMemeRepo(BaseRepo[RedditMemesDataclass]):
