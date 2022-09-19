@@ -76,9 +76,9 @@ def process_from_iterable(func: Callable[..., Iterable[ReturnType]],
 @retry(tries=5, delay=1, logger=logger, backoff=1)
 def make_request(url: str) -> Dict[str, List[Dict[str, Any]]]:
     with requests.get(url) as resp:
-        # if resp.status_code != 200:
-        #     logger.error(url)
-        #     logger.error(resp)
+        if resp.status_code != 200:
+            logger.error(url)
+            logger.error(resp.content)
         return json.loads(resp.content)
 
 
@@ -86,7 +86,7 @@ def avg_n(listy: List[float], avg: int) -> List[float]:
     return [np.mean(listy[i: i + avg]) for i in range(0, len(listy), avg)]
 
 
-@option_context("display.max_rows", None, "display.max_columns", None)  # type: ignore
+@ option_context("display.max_rows", None, "display.max_columns", None)  # type: ignore
 def display_df(df: DataFrame | NDFrame | Series, clear: bool = False):
     not clear or clear_output()
     _ = display(df)

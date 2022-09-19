@@ -18,7 +18,6 @@ CELERY_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_REDIS_MAX_CONNECTIONS = 5
 CELERYBEAT_SCHEDULE: dict[str, BeatTask] = {
-    "reddit": {"task": "scrapper2", "schedule": crontab(minute='*/5')},
-    "ai": {"task": "model_runner2", "schedule": crontab(minute='*/5')},
-    "template": {"task": "sync2", "schedule": crontab(minute="0", hour="0")}
+    "reddit": {"task": "scrapper", "schedule": crontab(minute='*/5')},
+    "ai": {"task": "model_runner", "schedule": crontab(minute='*/5')}
 }

@@ -1,6 +1,4 @@
-from sqlalchemy import (Boolean, Column, DateTime, Enum, Float,
-                        ForeignKeyConstraint, Integer, PrimaryKeyConstraint,
-                        String, UniqueConstraint, text)
+from sqlalchemy import Boolean, Column, DateTime, Enum, Float, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -52,7 +50,6 @@ class RedditMemes(Base):
     id = Column(UUID, server_default=text('uuid_generate_v4()'))
     created_at = Column(DateTime(True), nullable=False, server_default=text('now()'))
     idx = Column(Integer, nullable=False)
-    username = Column(String, nullable=False)
     reddit_id = Column(String, nullable=False)
     subreddit = Column(String, nullable=False)
     title = Column(String, nullable=False)
@@ -61,14 +58,13 @@ class RedditMemes(Base):
     upvotes = Column(Integer, nullable=False)
     downvotes = Column(Integer, nullable=False)
     num_comments = Column(Integer, nullable=False)
-    timestamp = Column(Integer, nullable=False)
+    redditor_id = Column(UUID, nullable=False)
     deleted_at = Column(DateTime(True))
     image_error = Column(Enum('IsDeleted', 'Malformed', 'NoImage', 'Connection', 'Unidentified', 'Unknown', name='ImageError'))
     percentile = Column(Float(53))
     not_meme = Column(Boolean)
     not_template = Column(Boolean)
     meme_text = Column(String)
-    redditor_id = Column(UUID)
     template_name = Column(String)
 
     redditor = relationship('Redditors', back_populates='reddit_memes')

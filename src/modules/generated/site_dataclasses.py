@@ -4,9 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import (Boolean, Column, DateTime, Enum, Float,
-                        ForeignKeyConstraint, Integer, PrimaryKeyConstraint,
-                        String, UniqueConstraint, text)
+from sqlalchemy import Boolean, Column, DateTime, Enum, Float, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import registry, relationship
 
@@ -67,7 +65,6 @@ class RedditMemes:
     id: str = field(metadata={'sa': Column(UUID, server_default=text('uuid_generate_v4()'))})
     created_at: datetime = field(metadata={'sa': Column(DateTime(True), nullable=False, server_default=text('now()'))})
     idx: int = field(metadata={'sa': Column(Integer, nullable=False)})
-    username: str = field(metadata={'sa': Column(String, nullable=False)})
     reddit_id: str = field(metadata={'sa': Column(String, nullable=False)})
     subreddit: str = field(metadata={'sa': Column(String, nullable=False)})
     title: str = field(metadata={'sa': Column(String, nullable=False)})
@@ -76,15 +73,13 @@ class RedditMemes:
     upvotes: int = field(metadata={'sa': Column(Integer, nullable=False)})
     downvotes: int = field(metadata={'sa': Column(Integer, nullable=False)})
     num_comments: int = field(metadata={'sa': Column(Integer, nullable=False)})
-    timestamp: int = field(metadata={'sa': Column(Integer, nullable=False)})
+    redditor_id: str = field(metadata={'sa': Column(UUID, nullable=False)})
     deleted_at: Optional[datetime] = field(default=None, metadata={'sa': Column(DateTime(True))})
-    image_error: Optional[str] = field(default=None, metadata={'sa': Column(
-        Enum('IsDeleted', 'Malformed', 'NoImage', 'Connection', 'Unidentified', 'Unknown', name='ImageError'))})
+    image_error: Optional[str] = field(default=None, metadata={'sa': Column(Enum('IsDeleted', 'Malformed', 'NoImage', 'Connection', 'Unidentified', 'Unknown', name='ImageError'))})
     percentile: Optional[float] = field(default=None, metadata={'sa': Column(Float(53))})
     not_meme: Optional[bool] = field(default=None, metadata={'sa': Column(Boolean)})
     not_template: Optional[bool] = field(default=None, metadata={'sa': Column(Boolean)})
     meme_text: Optional[str] = field(default=None, metadata={'sa': Column(String)})
-    redditor_id: Optional[str] = field(default=None, metadata={'sa': Column(UUID)})
     template_name: Optional[str] = field(default=None, metadata={'sa': Column(String)})
 
     redditor: Optional[Redditors] = field(default=None, metadata={'sa': relationship('Redditors', back_populates='reddit_memes')})
