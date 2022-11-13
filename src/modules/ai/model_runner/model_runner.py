@@ -5,13 +5,13 @@ from typing import Any
 import arrow
 from IPython.core.display import clear_output
 from sqlalchemy import func, select
+from src.enums.e_memeclf_version import EMemeClfVersion
+from src.generated.site_tables import TemplatePredictions
 from src.lib import logger, utils
-from src.services.database import site_session_maker
-from src.modules.versioning import Versioner
 from src.modules.ai.ai_model_service import AiModelService
 from src.modules.ai.model_runner.model_runner_dataset import (
     Entity, ImageError, MemeClfPreditingDataset)
-from src.modules.generated.site_tables import TemplatePredictions
+from src.services.database import site_session_maker
 
 
 @dataclass
@@ -36,7 +36,7 @@ class ModelRunner:
     is_celery: bool = False
 
     def __post_init__(self):
-        self.version = Versioner.meme_clf(lts=self.lts)
+        self.version = EMemeClfVersion.get_version_by_lts(lts=self.lts)
         self.dataset = MemeClfPreditingDataset(self.entity, self.is_celery, self.version)
 
     def get_error_count(self, image_error: ImageError):

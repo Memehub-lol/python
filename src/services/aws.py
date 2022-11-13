@@ -7,21 +7,20 @@ from typing import Any, Optional
 import boto3
 from botocore.exceptions import ClientError
 from src.lib import utils
-
 from src.services.environment import Environment
-
-aws_access_key_id, aws_secret_access_key, default_s3_bucket = Environment.AWS_CONFIG
 
 
 class AWS:
-    s3: Any = boto3.client("s3", aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+    s3: Any = boto3.client("s3",
+                           aws_access_key_id=Environment.AWS_CONFIG["AWS_ID"],
+                           aws_secret_access_key=Environment.AWS_CONFIG["AWS_KEY"])
 
     @classmethod
     def s3_bucket(cls):
         return AWS.s3.Bucket("memehub")
 
     @classmethod
-    def upload_to_aws(cls, file_path: str, Key: str, Bucket: str = default_s3_bucket):
+    def upload_to_aws(cls, file_path: str, Key: str, Bucket: str = Environment.AWS_CONFIG["BUCKET"]):
         try:
             cls.s3.head_object(Bucket=Bucket, Key=Key)
         except ClientError:

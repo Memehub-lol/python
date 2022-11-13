@@ -1,14 +1,13 @@
 
-from typing import Any, Callable, ClassVar, Dict, Generic, List, Type, TypeVar
+from typing import Any, Callable, ClassVar, Dict, List, Type, TypeVar
 
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.schema import Table
 
 ReturnType = TypeVar("ReturnType")
-Repo = TypeVar("Repo")
 
 
-class BaseRepo(Generic[Repo]):
+class BaseRepo:
     Dataclass: ClassVar[type]
     Table: ClassVar[Type[Table]]
     sessionmaker: ClassVar[Callable[..., Session]]

@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from src.modules.generated.site_tables import ImgflipTemplates
+from src.generated.site_tables import ImgflipTemplates
 from src.modules.template.template_repo import TemplateRepo
 
 

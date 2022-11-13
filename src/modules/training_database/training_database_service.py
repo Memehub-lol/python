@@ -1,19 +1,16 @@
 import os
-import shutil
 from enum import Enum
 from pathlib import Path
 
-import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import delete, select
 from sqlalchemy.orm.session import Session
-from src.lib import logger, utils
-from src.lib.image_url import ImageUrlUtils
-from src.lib.template_data import REPLICATED_TEMPLATES_GROUPED
-from src.modules.generated.site_dataclasses import \
+from src.generated.site_dataclasses import \
     ImgflipTemplates as ImgflipTemplatesDC
-from src.modules.generated.site_tables import ImgflipTemplates
+from src.generated.site_tables import ImgflipTemplates
+from src.lib import utils
+from src.lib.image_url import ImageUrlUtils
 from src.modules.training_database.training_database_entities import (
     NotMemeEntity, NotTemplateEntity, TemplateEntity, training_entities)
 from src.services.database import site_session_maker, training_session_maker
@@ -50,7 +47,8 @@ def add_path_urls_from_page(page_num: int):
                 soup = BeautifulSoup(resp.text, "lxml")
             for meme_element in soup.find_all("img", class_="base-img"):
                 url = "https:" + meme_element["src"]
-                path = EDataPath.IMGFLIP.path(template.name, url.split("/")[-1])
+                filename = meme_element["src"].split("/")[-1]
+                path = EDataPath.IMGFLIP.path(template.name, filename)
                 _ = ImageUrlUtils.download_image(url, path, verbose=True)
         except:
             pass
@@ -58,15 +56,20 @@ def add_path_urls_from_page(page_num: int):
 
 class TrainingDatabaseService:
     @classmethod
-    def folder_count(cls):
-        series = pd.Series({folder: len(os.listdir(EDataPath.IMGFLIP.value+folder)) for folder in os.listdir(EDataPath.IMGFLIP.value)})
-        utils.display_df(series.sort_values(ascending=True)[:25])
-
-    @classmethod
     def download_images_from_imgflip(cls):
         for template in templates:
             Path(EDataPath.IMGFLIP.value + "/" + template.name).mkdir(parents=True, exist_ok=True)
         _ = utils.process(add_path_urls_from_page, range(num_pages), total=num_pages)
+
+    @classmethod
+    def build_db(cls):
+        with training_session_maker() as session:
+            cls._clear_training_data(session)
+            cls._add_not_template(session)
+            cls._add_not_meme(session)
+            cls._add_templates(session)
+        with site_session_maker() as session:
+            cls._add_template_image_count(session)
 
     @classmethod
     def _clear_training_data(cls, session: Session):
@@ -107,32 +110,3 @@ class TrainingDatabaseService:
             files = os.listdir(EDataPath.IMGFLIP.folder(template.name)) + os.listdir(EDataPath.REDDIT.folder(template.name))
             template.num_images = len(files)
         session.commit()
-
-    @classmethod
-    def build_db(cls):
-        with training_session_maker() as session:
-            cls._clear_training_data(session)
-            cls._add_not_template(session)
-            cls._add_not_meme(session)
-            cls._add_templates(session)
-        with site_session_maker() as session:
-            cls._add_template_image_count(session)
-
-    @staticmethod
-    def clean_data():
-        bad_folders: list[str] = []
-        for names in REPLICATED_TEMPLATES_GROUPED:
-            Path(dest := EDataPath.IMGFLIP.folder(names[-1]) + "/").mkdir(parents=True, exist_ok=True)
-            for name in names[:-1]:
-                path = EDataPath.IMGFLIP.folder(name) + "/"
-                if not Path(path).is_dir():
-                    bad_folders.append(name)
-                    continue
-                if not len(os.listdir(path)):
-                    shutil.rmtree(path)
-                for filename in Path(path).iterdir():
-                    try:
-                        _ = shutil.copyfile(filename, dest + filename.stem)
-                    except shutil.SameFileError:
-                        pass
-        logger.info("bad folders", bad_folders)

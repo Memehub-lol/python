@@ -6,14 +6,13 @@ from praw.reddit import Submission
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.operators import ColumnOperators
+from src.generated.site_dataclasses import RedditMemes as RedditMemesDataclass
+from src.generated.site_tables import RedditMemes, Redditors
 from src.modules.base import BaseRepo
-from src.modules.generated.site_dataclasses import \
-    RedditMemes as RedditMemesDataclass
-from src.modules.generated.site_tables import RedditMemes, Redditors
 from src.services.database import site_session_maker
 
 
-class RedditMemeRepo(BaseRepo[RedditMemesDataclass]):
+class RedditMemeRepo(BaseRepo):
     Dataclass: ClassVar[Type[RedditMemesDataclass]] = RedditMemesDataclass
     Table: ClassVar[Type[RedditMemes]] = RedditMemes
     sessionmaker: ClassVar[Callable[..., Session]] = site_session_maker
@@ -37,12 +36,12 @@ class RedditMemeRepo(BaseRepo[RedditMemesDataclass]):
                                    subreddit=str(submission.subreddit))
 
     @classmethod
-    def max_ts(cls, *where_clause: ColumnOperators) -> Optional[datetime]:
+    def max_dt(cls, *where_clause: ColumnOperators) -> Optional[datetime]:
         with cls.sessionmaker() as session:
             return session.execute(select(func.max(cls.Table.created_at)).where(*where_clause)).scalar()
 
     @classmethod
-    def min_ts(cls, *where_clause: ColumnOperators) -> Optional[datetime]:
+    def min_dt(cls, *where_clause: ColumnOperators) -> Optional[datetime]:
         with cls.sessionmaker() as session:
             return session.execute(select(func.min(cls.Table.created_at)).where(*where_clause)).scalar()
 

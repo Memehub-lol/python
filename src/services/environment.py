@@ -1,6 +1,5 @@
 import json
 import os
-from enum import Enum
 from typing import Literal, TypedDict, Union, cast
 
 from torch import cuda, device
@@ -24,6 +23,7 @@ class EnvVars(TypedDict):
     POSTGRES_PASSWORD: str
     POSTGRES_HOST: str
     POSTGRES_PORT: str
+    TRAINING_POSTGRES_PORT: str
     POSTGRES_DB: str
 
     REDDIT_OAUTH_0: str
@@ -53,7 +53,9 @@ class Environment:
     PYTORCH_DEVICE = device("cuda:0" if cuda.is_available() else "cpu")
     REDIS_AI_DEVICE = "GPU" if cuda.is_available() else "CPU"
 
-    AWS_CONFIG = (_env_vars["AWS_ID"], _env_vars["AWS_KEY"], "memehub-development")
+    AWS_CONFIG = {"AWS_ID": _env_vars["AWS_ID"],
+                  "AWS_KEY": _env_vars["AWS_KEY"],
+                  "BUCKET": "memehub-development"}
 
     @classmethod
     def get_site_db_connection_options(cls):
@@ -69,8 +71,8 @@ class Environment:
         return ("postgresql",
                 cls._env_vars["POSTGRES_USER"],
                 cls._env_vars["POSTGRES_PASSWORD"],
-                cls._env_vars["POSTGRES_HOST"],
-                cls._env_vars["POSTGRES_PORT"],
+                "localhost",
+                cls._env_vars["TRAINING_POSTGRES_PORT"],
                 cls._env_vars["POSTGRES_DB"])
 
     @classmethod
@@ -83,19 +85,3 @@ class Environment:
                 cls._env_vars["REDDIT_OAUTH_5"],
                 cls._env_vars["REDDIT_OAUTH_6"],
                 cls._env_vars["REDDIT_OAUTH_7"]]
-
-
-class Database(Enum):
-    SITE = "SITE"
-    TRAINING = "TRAINING"
-
-    def get_config(self):
-        if self is Database.SITE:
-            return Environment.get_site_db_connection_options()
-        elif self is Database.TRAINING:
-            return Environment.get_training_db_connection_options()
-        raise Exception("enum exhausted")
-
-    def url(self):
-        protocol, user, password, host, port, db_Name = self.get_config()
-        return f"{protocol}://{user}:{password}@{host}:{port}/{db_Name}"

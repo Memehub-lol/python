@@ -5,14 +5,14 @@ from multiprocessing import cpu_count
 from typing import Any, ClassVar, Iterable, Optional, Tuple
 
 import arrow
+from src.enums.e_memeclf_version import EMemeClfVersion
+from src.generated.site_tables import RedditMemes
 from PIL import UnidentifiedImageError
 from sqlalchemy import case, func, select
 from sqlalchemy.sql.expression import ClauseElement
 from src.lib.errors import Errors
 from src.lib.image_url import ImageUrlUtils
 from src.modules.ai.transforms import Transformations
-from src.modules.generated.site_tables import RedditMemes
-from src.modules.versioning import Versioner
 from src.services.database import site_session_maker
 from torch import Tensor
 from torch.utils.data import DataLoader, get_worker_info
