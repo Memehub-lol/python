@@ -2,18 +2,36 @@ import os
 from typing import Any, cast
 
 import ml2rt
-from src.modules.versioning import Versioner
+import numpy as np
 from redisai.client import Client
-from src.lib import logger
-from src.modules.ai.meme_clf.lib.meme_clf_path import ESaveFolder, MemeClfPath
-from torch import cuda
+from torch import Tensor, cuda
 
+from src.enums.e_memeclf_path import EMemeClfPath
+from src.enums.e_memeclf_version import EMemeClfVersion
+from src.lib import logger
+from src.modules.ai.static_data import StaticData
 from src.services.environment import Environment
 
 
 class Rai:
     backend = "TORCH"
     client = Client(**Environment.REDIS_AI_CONFIG)
+
+    @classmethod
+    def exec_meme_clf_dag(cls,  images: Tensor, static_data: StaticData) -> list[str]:
+        try:
+            dag = cls.client.dag(routing=cast(Any, None))
+            dag.tensorset("images", tensor=images.numpy())
+            dag.modelrun("features", inputs="images", outputs="features")
+            dag.modelrun("dense", inputs="features", outputs="dense")
+            dag.tensorget("dense")
+            int_names = list(map(str, np.argmax(dag.execute()[-1], axis=1)))
+            names = static_data.get_names(int_names)
+            return [names] if len(int_names) == 1 else names
+        except Exception as e:
+            print(cls.client.modelget("features", meta_only=True))
+            print(cls.client.modelget("dense", meta_only=True))
+            raise e
 
     @classmethod
     def delete(cls, name: str):
@@ -42,15 +60,14 @@ class Rai:
         return names_in_redis
 
     @classmethod
-    def load_models_to_redis(cls, reload: bool):
-        meme_version = Versioner.meme_clf(lts=True)
-        folder = ESaveFolder.JIT_GPU if cuda.is_available() else ESaveFolder.JIT_CPU
-        jit_folder = "./" + MemeClfPath.build_path_by_version(folder, meme_version, backup=False)
-        maybe_names_in_redis: set[str] = cls.get_currently_loaded([meme_version]) if not reload else set()
+    def load_models_to_redis(cls, reload: bool, lts: bool = True):
         logger.info("Loading MemeClf to redisai")
+        meme_version = EMemeClfVersion.get_version_by_lts(lts=lts)
+        maybe_names_in_redis: set[str] = cls.get_currently_loaded([meme_version]) if not reload else set()
+        folder = EMemeClfPath.JIT_GPU if cuda.is_available() else EMemeClfPath.JIT_CPU
+        jit_folder = f"./{folder.build_path_by_version(meme_version, backup=False)}"
         names_on_disk = set([os.path.splitext(filename)[0] for filename in os.listdir(jit_folder)])
         for name in names_on_disk - maybe_names_in_redis:
-            model: Any = ml2rt.load_model(f"{jit_folder}/{name}.pt")
-            cls.modelstore(name, model, meme_version)
+            cls.modelstore(name, ml2rt.load_model(f"{jit_folder}/{name}.pt"), meme_version)
         for name in maybe_names_in_redis - names_on_disk:
             cls.delete(name)

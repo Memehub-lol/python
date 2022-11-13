@@ -1,20 +1,20 @@
 from typing import Callable, ClassVar, Type
 
+from src.generated.site_dataclasses import \
+    ImgflipTemplates as ImgflipTemplatesDataclass
+from src.generated.site_tables import ImgflipTemplates
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
-from src.services.database import site_session_maker
 from src.modules.base import BaseRepo
-from src.modules.generated.site_dataclasses import \
-    Templates as TemplatesDataclass
-from src.modules.generated.site_tables import Templates
+from src.services.database import site_session_maker
 
 
-class TemplateRepo(BaseRepo[TemplatesDataclass]):
-    Dataclass: ClassVar[Type[TemplatesDataclass]] = TemplatesDataclass
-    Table: ClassVar[Type[Templates]] = Templates
+class TemplateRepo(BaseRepo):
+    Dataclass: ClassVar[Type[ImgflipTemplatesDataclass]] = ImgflipTemplatesDataclass
+    Table: ClassVar[Type[ImgflipTemplates]] = ImgflipTemplates
     sessionmaker: ClassVar[Callable[..., Session]] = site_session_maker
 
     @classmethod
     def count(cls) -> int:
         with site_session_maker() as session:
-            return session.scalar(select(func.count(Templates.name.distinct())))
+            return session.scalar(select(func.count(ImgflipTemplates.name.distinct())))

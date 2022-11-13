@@ -5,9 +5,9 @@ from typing import ClassVar, cast
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
+from src.enums.e_memeclf_path import EMemeClfPath
 from src.lib.json_save_load_base import CheckpointBase
 from src.modules.ai.meme_clf.lib.meme_clf_ephemeral import Ephemeral
-from src.modules.ai.meme_clf.lib.meme_clf_path import MemeClfPath
 
 
 @dataclass
@@ -42,7 +42,7 @@ class MemeClfModelStats(CheckpointBase):
 
     @classmethod
     def _get_path(cls, meme_version: str, backup: bool):
-        return MemeClfPath.meme_clf_path(meme_verion=meme_version, backup=backup)
+        return EMemeClfPath.path_by_version(meme_version, backup=backup)
 
     def print_graphs(self):
         plt.style.use('dark_background')

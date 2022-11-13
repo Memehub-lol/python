@@ -2,20 +2,22 @@ import random
 from dataclasses import dataclass
 from enum import Enum
 from itertools import repeat
-from typing import Any, ClassVar, Iterable, cast
+from typing import ClassVar, Iterable, TypeVar, cast
 
 import torch
 from PIL import Image as Img
 from sqlalchemy import func, select
 from sqlalchemy.orm.session import Session
-from src.services.database import training_session_maker
 from src.modules.ai.static_data import StaticData
 from src.modules.ai.transforms import Transformations
 from src.modules.training_database.training_database_entities import (
     NotMemeEntity, NotTemplateEntity, TemplateEntity)
+from src.services.database import training_session_maker
 from torch import Tensor
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import IterableDataset
+
+T = TypeVar("T")
 
 
 class ELoadSet(Enum):
@@ -33,6 +35,13 @@ class ELoadSet(Enum):
         return self.is_training() or self is ELoadSet.TRANSFORMS_EVAL
 
 
+def _fill_list(listy: list[T], num: int) -> list[T]:
+    if listy and len(listy) < num:
+        listy = listy * (num // len(listy)+1)
+        listy = listy[:num]
+    return listy
+
+
 @dataclass
 class MemeClfTrainingDataset(IterableDataset[tuple[Tensor, Tensor]]):
     transform_prob: ClassVar[float] = 0.75
@@ -42,11 +51,12 @@ class MemeClfTrainingDataset(IterableDataset[tuple[Tensor, Tensor]]):
     batch_size: int = 128
 
     def __post_init__(self):
+        super(MemeClfTrainingDataset).__init__()
         self.static_data = StaticData.load(meme_version=self.meme_version)
         self.is_training = self.load_set.is_training()
         self.num_workers = 5 if self.is_training else 1
         self.num_each_template = 64 if self.is_training else 5
-        self.num_names = len(self.static_data.name_num) - 2
+        self.num_names = len(self.static_data.get_template_names())
         not_meme_portion = 0.15 if self.is_training else 0.1
         self.num_not_meme = int(self.num_each_template * self.num_names * not_meme_portion)
         not_template_portion = 0.35 if self.is_training else 0.1
@@ -60,19 +70,13 @@ class MemeClfTrainingDataset(IterableDataset[tuple[Tensor, Tensor]]):
                              self.num_each_template * self.num_names)
         return self.num_workers * (images_per_worker) // self.batch_size
 
-    def _fill_list(self, listy: list[Any], num: int):
-        if listy and len(listy) < num:
-            listy = listy * (num // len(listy)+1)
-            listy = listy[:num]
-        return listy
-
     def _get_not_meme_paths(self, session: Session):
         query = (select(NotMemeEntity.path)
                  .order_by(func.random())
                  .filter_by(is_test_set=not self.is_training)
                  .limit(self.num_not_meme))
         list_gen = zip(cast(list[str], session.scalars(query)), repeat("not_meme"))
-        return self._fill_list(list(list_gen), self.num_not_meme)
+        return _fill_list(list(list_gen), self.num_not_meme)
 
     def _get_not_template_paths(self, session: Session):
         query = (select(NotTemplateEntity.path)
@@ -80,7 +84,7 @@ class MemeClfTrainingDataset(IterableDataset[tuple[Tensor, Tensor]]):
                  .filter_by(is_test_set=not self.is_training)
                  .limit(self.num_not_template))
         list_gen = zip(cast(list[str], session.scalars(query)), repeat("not_template"))
-        return self._fill_list(list(list_gen), self.num_not_template)
+        return _fill_list(list(list_gen), self.num_not_template)
 
     def _get_template_name_paths(self, name: str, session: Session):
         query = (select(TemplateEntity.path)
@@ -88,7 +92,7 @@ class MemeClfTrainingDataset(IterableDataset[tuple[Tensor, Tensor]]):
                  .order_by(func.random())
                  .limit(self.num_each_template))
         list_gen = zip(cast(list[str], session.scalars(query)), repeat(name))
-        return self._fill_list(list(list_gen), self.num_each_template)
+        return _fill_list(list(list_gen), self.num_each_template)
 
     def _get_template_paths(self, session: Session):
         path_names: list[tuple[str, str]] = []

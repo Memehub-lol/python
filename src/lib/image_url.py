@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import numpy as np
@@ -6,7 +5,7 @@ import requests
 from PIL import Image
 from PIL.Image import Image as ImageType
 from src.lib import logger
-from src.lib.errors import Errors
+from src.lib.image_exceptions import ImageExceptions
 
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
@@ -20,7 +19,7 @@ class ImageUrlUtils:
     def check_is_deleted_image(cls, image: ImageType):
         for deleted_image in deleted_images:
             if (np.array_equal(np.asarray(deleted_image), np.asarray(image))):
-                raise Errors.IsDeleted
+                raise ImageExceptions.IsDeleted
 
     @classmethod
     def get_image(cls, url: str, check_is_deleted: bool = False):
@@ -30,9 +29,9 @@ class ImageUrlUtils:
             cls.check_is_deleted_image(image)
         image_arr = np.asarray(image)
         if not image_arr.shape == IMG_SHAPE:
-            raise Errors.MalformedImage
+            raise ImageExceptions.MalformedImage
         elif not image_arr.any():
-            raise Errors.NoImage
+            raise ImageExceptions.NoImage
         return image
 
     @classmethod

@@ -1,32 +1,11 @@
 import time
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from src.lib import logger, utils
 
 ReturnType = TypeVar('ReturnType')
 Decorator = Callable[[Callable[..., ReturnType]], Callable[..., ReturnType]]
-
-
-def report_exception(raise_exception: bool = False,
-                     msg: str = "",
-                     return_value: Optional[ReturnType] = None) -> Decorator[ReturnType]:
-    def decorator(f: Callable[..., ReturnType]):
-        @wraps(f)
-        def wrapped(*args: Any, **kwargs: Any):
-            try:
-                return f(*args, **kwargs)
-            except Exception as e:
-                if msg:
-                    logger.error(msg)
-                else:
-                    logger.error("func name: "+f.__name__+"\n"+str(e))
-                if raise_exception:
-                    raise e
-                else:
-                    return return_value
-        return wrapped
-    return decorator
 
 
 def timeit() -> Decorator[ReturnType]:
@@ -70,15 +49,5 @@ def do_backup_also() -> Decorator[None]:
         def wrapped(*args: Any, **kwargs: Any):
             _ = f(*args, backup=True, **kwargs)
             _ = f(*args, backup=False, **kwargs)
-        return wrapped
-    return decorator
-
-
-def lts_safe() -> Decorator[ReturnType]:
-    def decorator(f: Callable[..., ReturnType]):
-        @wraps(f)
-        def wrapped(*args: Any, lts: bool, fresh: bool, **kwargs: Any):
-            assert not lts or not fresh
-            return f(*args, lts=lts, fresh=fresh, **kwargs)
         return wrapped
     return decorator
