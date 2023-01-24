@@ -1,7 +1,7 @@
 from src.celery import CELERY
 from src.celery.config import CELERYBEAT_SCHEDULE
 from src.lib import logger
-from src.modules.reddit_meme.reddit_meme_service import RedditMemeService
+from src.modules.reddit_meme.reddit_scraper import calc_percentiles, praw_memes
 
 
 @CELERY.task(name=CELERYBEAT_SCHEDULE["ai"]["task"], unique_on=[], lock_expiry=60 * 60 * 12)
@@ -19,5 +19,5 @@ def model_runner():
 @CELERY.task(name=CELERYBEAT_SCHEDULE["reddit"]["task"], unique_on=[], lock_expiry=60 * 60 * 12)
 def Reddit():
     logger.info("Reddit Scraper Task Started")
-    RedditMemeService.praw_memes(verbose=False)
-    RedditMemeService.calc_percentiles(verbose=False)
+    praw_memes(verbose=False)
+    calc_percentiles()

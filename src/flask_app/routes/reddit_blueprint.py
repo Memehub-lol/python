@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from apiflask import APIBlueprint
 from marshmallow_dataclass import class_schema
 from praw.reddit import Submission
-from src.modules.reddit_meme.reddit_scraper import RedditMemeScrapper
+
+from src.modules.reddit_meme.reddit_scraper import reddit_objs
 
 reddit_blueprint = APIBlueprint('reddit_blueprint', __name__, url_prefix="/reddit")
 
@@ -27,7 +28,7 @@ class SubmissionOut:
 @reddit_blueprint.input(class_schema(SubmissionIn)(), location='json')
 @reddit_blueprint.output(class_schema(SubmissionOut)())
 def vote_data(submission_in: SubmissionIn):
-    submission: Submission = random.choice(RedditMemeScrapper.reddit_objs).submission(id=submission_in.id)
+    submission: Submission = random.choice(reddit_objs).submission(id=submission_in.id)
     return {"upvote_ratio": submission.upvote_ratio,
             "upvotes": submission.score,
             "downvotes": round(submission.score / submission.upvote_ratio) - submission.score}

@@ -1,8 +1,9 @@
-import json
+
 from typing import Any, Dict, List
 
 import requests
 from retry import retry
+
 from src.lib import logger
 
 
@@ -10,6 +11,7 @@ from src.lib import logger
 def make_request(url: str) -> Dict[str, List[Dict[str, Any]]]:
     with requests.get(url) as resp:
         if resp.status_code != 200:
-            logger.error(url)
-            logger.error(resp.content)
-        return json.loads(resp.content)
+            logger.error(f"url: {url}")
+            logger.error(f"status_code: {resp.status_code}")
+            raise Exception("failed request")
+        return resp.json()

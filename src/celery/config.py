@@ -1,9 +1,8 @@
 
 from typing import TypedDict
 
-from src.services.environment import Environment
-
 from celery.schedules import crontab
+from src.services.environment import Environment
 
 
 class BeatTask(TypedDict):

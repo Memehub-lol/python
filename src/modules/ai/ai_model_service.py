@@ -1,10 +1,11 @@
 from PIL import Image as Img
+from torch import Tensor
+
 from src.enums.e_memeclf_version import EMemeClfVersion
 from src.lib.image_url import ImageUrlUtils
 from src.modules.ai.static_data import StaticData
 from src.modules.ai.transforms import Transformations
 from src.services.rai import Rai
-from torch import Tensor
 
 
 class AiModelService:
@@ -19,8 +20,7 @@ class AiModelService:
 
     @classmethod
     def pred_single_by_image(cls, image: Tensor):
-        name = cls.meme_clf_lts(image.unsqueeze(0))[0]
-        return name
+        return cls.meme_clf_lts(image.unsqueeze(0))[0]
 
     @classmethod
     def pred_from_path(cls, path: str):
